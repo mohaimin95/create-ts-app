@@ -6,7 +6,7 @@
   "scripts": {
     "start:dev": "nodemon",
     "start": "npm run build && node -r ts-node/register -r tsconfig-paths/register --inspect dist/index.js",
-    "clear:dist": "IF EXIST dist rmdir /s /q dist",
+    "clear:dist": "rm -rf dist",
     "build": "npm run clear:dist && tsc",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix"
