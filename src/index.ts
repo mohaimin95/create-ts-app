@@ -1,8 +1,9 @@
 import { config } from 'dotenv';
 config();
 import app from './server';
+const { PORT = 3200 } = process.env;
 
-app.listen(3000, () => {
+app.listen(+PORT, () => {
   // eslint-disable-next-line no-console
-  console.log('Express running in port', 3000);
+  console.log('Express running in port', PORT);
 });
