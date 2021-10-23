@@ -45,6 +45,10 @@ userSchema.pre('save', function (next) {
   this.password = BcryptService.hashPwd(this.password);
   next();
 });
+userSchema.pre('updateOne', function (next) {
+  this._update.$set.password = BcryptService.hashPwd(this._update.$set.password);
+  next();
+});
 const User = mongoose.model('User', userSchema);
 
 export default User;

@@ -67,9 +67,15 @@ export class UserService {
     throw new Error('Missing data!!!');
   }
 
-  static getUserById(id, options?: any): Promise<IUser> {
+  static async getUserById(id, options?: any): Promise<IUser | undefined> {
     if (options && options.selectAll) {
-      return User.findOne({ _id: id }).select('+password').exec();
+      try {
+        const res: any = await User.findOne({ _id: id }).select('+password').exec();
+
+        return res && res._doc ? res._doc : null;
+      } catch (ex) {
+        throw new Error(ex.message || 'Unknown Error!');
+      }
     }
 
     return User.findById(id, options).lean() as unknown as Promise<IUser>;
@@ -95,9 +101,9 @@ export class UserService {
       });
       await EmailVerificationCode.deleteMany({ userId });
       // eslint-disable-next-line object-property-newline
-      await EmailVerificationCode.insertMany([{ userId, verificationCode: verificationCode.toString() }]);
+      const newEmailVerification = new EmailVerificationCode({ userId, verificationCode: verificationCode.toString() });
 
-      return;
+      return newEmailVerification.save();
     } catch (ex) {
       // eslint-disable-next-line no-console
       console.log(ex);
@@ -118,11 +124,14 @@ export class UserService {
       throw new Error('Code is invalid, please request a new verification email !!!');
     } else {
       await EmailVerificationCode.deleteMany({ userId: user._id });
-      await User.findByIdAndUpdate(user._id, {
-        $set: {
-          isEmailVerified: true,
-        },
-      });
+      await User.updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            isEmailVerified: true,
+          },
+        }
+      );
 
       return 'Email successfully verified';
     }
@@ -156,12 +165,12 @@ export class UserService {
     const verificationCode = Math.ceil(Math.random() * 100000).toString();
 
     await ResetPasswordCode.deleteMany({ userId: user._id });
-    await ResetPasswordCode.insertMany([
-      {
-        userId: user._id,
-        code: verificationCode,
-      },
-    ]);
+    const newPasswordResetCode = new ResetPasswordCode({
+      userId: user._id,
+      code: verificationCode,
+    });
+
+    await newPasswordResetCode.save();
     const { subject, html } = EmailTemplates.resetPassword({
       name: user.name,
       verificationCode,
@@ -192,11 +201,14 @@ export class UserService {
       }
 
       if (BcryptService.comparePwd(code, resetPasswordCodes.code)) {
-        await User.findByIdAndUpdate(userId, {
-          $set: {
-            password,
-          },
-        });
+        await User.updateOne(
+          { _id: userId },
+          {
+            $set: {
+              password,
+            },
+          }
+        );
 
         return 'Success';
       }
