@@ -5,9 +5,9 @@
   "main": "src/index.js",
   "scripts": {
     "start:dev": "nodemon",
-    "start": "npm run build && node -r ts-node/register -r tsconfig-paths/register --inspect dist/index.js",
+    "start": "node dist/index.js",
     "clear:dist": "rm -rf dist",
-    "build": "npm run clear:dist && tsc",
+    "build": "npm run clear:dist && tsc --project tsconfig.json  && tscpaths -p tsconfig.json -s ./src -o ./dist",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix"
   },
@@ -16,7 +16,7 @@
       "src"
     ],
     "ext": "ts",
-    "exec": "npm run start"
+    "exec": "npm run build && node --inspect -r ts-node/register -r tsconfig-paths/register ./dist"
   },
   "author": "Abdul Mohaimin N",
   "license": "ISC",
